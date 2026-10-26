@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Disruption Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Poppins (títulos), Inter (texto) y Noto Color Emoji (para que las banderas se vean también en Windows) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M32 4 8 13v17c0 15 10 26 24 30 14-4 24-15 24-30V13z' fill='%230B1F3A'/><path d='M44 29 35 27 28 16h-4l4 11-8-1-3-4h-3l2 7-2 7h3l3-4 8-1-4 11h4l7-11 9-2c2 0 2-4 0-4z' fill='%2314B8A6' transform='rotate(-30 32 32)'/></svg>">
+<style>
+  /* ================= PALETA (variables CSS) ================= */
+  :root {
+    --navy: #0B1F3A;
+    --navy-2: #132D52;
+    --teal: #14B8A6;
+    --amber: #F59E0B;
+    --coral: #F43F5E;
+    --green: #22C55E;
+    --sand: #F8F6F1;
+    --card: #FFFFFF;
+    --ink: #0B1F3A;
+    --muted: #5B6B82;
+    --line: #E9E4DA;
+    --soft: #F3F0E9;
+    --radius: 20px;
+    --shadow: 0 1px 2px rgba(11,31,58,.04), 0 8px 24px -6px rgba(11,31,58,.10);
+    --shadow-lg: 0 2px 4px rgba(11,31,58,.05), 0 24px 48px -12px rgba(11,31,58,.18);
+    --c: var(--teal); /* color del paso actual (se cambia por JS) */
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--sand); color: var(--ink);
+    font: 15px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; padding-bottom: 96px;
+  }
+  h1, h2, h3, .display { font-family: Poppins, Inter, sans-serif; letter-spacing: -.02em; margin: 0; }
+  button { font: inherit; cursor: pointer; }
+  a { color: inherit; }
+  .flag { font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; font-size: 1.15em; line-height: 1; }
+  .mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; }
+  svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* ================= CABECERA ================= */
+  .hero {
+    position: relative; overflow: hidden; color: #fff;
+    background:
+      radial-gradient(800px 380px at 88% -20%, rgba(20,184,166,.35), transparent 60%),
+      radial-gradient(600px 300px at -5% 120%, rgba(244,63,94,.22), transparent 60%),
+      linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+    padding: 22px 0 92px;
+  }
+  .hero .route { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .18; pointer-events: none; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; position: relative; }
+  .badge-net {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500;
+    padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(34,197,94,.2); }
+  .dot.off { background: var(--coral); box-shadow: 0 0 0 4px rgba(244,63,94,.25); }
+  .langs { display: flex; padding: 4px; gap: 2px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
+  .langs button { border: 0; background: transparent; color: rgba(255,255,255,.75); padding: 6px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; }
+  .langs button.on { background: #fff; color: var(--navy); }
+  .brand { display: flex; align-items: center; gap: 22px; margin-top: 34px; position: relative; }
+  .logo { width: 76px; height: 76px; flex: none; filter: drop-shadow(0 10px 24px rgba(20,184,166,.35)); }
+  .brand h1 { font-size: clamp(34px, 5vw, 54px); font-weight: 800; line-height: 1.05; }
+  .brand .sub { font-family: Poppins, sans-serif; font-weight: 500; font-size: clamp(17px, 2.2vw, 22px); color: var(--teal); margin-top: 6px; }
+  .tagline { max-width: 680px; color: rgba(255,255,255,.72); margin: 18px 0 0 98px; font-size: 15.5px; position: relative; }
+
+  /* ================= BARRA DE PROGRESO ================= */
+  .stepper {
+    position: relative; margin-top: -58px; background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow-lg); padding: 22px 26px 20px;
+  }
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); position: relative; }
+  .track { position: absolute; left: 10%; right: 10%; top: 21px; height: 4px; border-radius: 4px; background: var(--soft); }
+  .track .fill { height: 100%; border-radius: 4px; width: 0; transition: width .6s cubic-bezier(.2,.8,.2,1);
+    background: linear-gradient(90deg, var(--navy), var(--teal) 30%, var(--amber) 55%, var(--coral) 78%, var(--green)); }
+  .step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 0; background: none; padding: 0; color: var(--muted); cursor: default; }
+  .step .bub {
+    width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--card);
+    border: 2px solid var(--line); color: #A3ACBA; transition: all .35s;
+  }
+  .step .lbl { font-size: 13px; font-weight: 600; text-align: center; line-height: 1.25; }
+  .step.done { cursor: pointer; }
+  .step.done .bub { background: var(--sc); border-color: var(--sc); color: #fff; }
+  .step.on .bub { border-color: var(--sc); color: var(--sc); box-shadow: 0 0 0 6px color-mix(in srgb, var(--sc) 16%, transparent); transform: scale(1.06); }
+  .step.on .lbl, .step.done .lbl { color: var(--ink); }
+
+  /* ================= DISTRIBUCIÓN ================= */
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; margin-top: 24px; align-items: start; }
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+  /* ================= TARJETA DEL PASO ================= */
+  .panel { overflow: hidden; }
+  .panel-head { display: flex; gap: 18px; align-items: flex-start; padding: 28px 30px 22px; border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 7%, #fff), #fff); position: relative; }
+  .panel-head::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 4px; background: var(--c); }
+  .ico { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; flex: none; color: #fff; background: var(--c);
+    box-shadow: 0 10px 22px -8px var(--c); }
+  .ico svg.i { width: 26px; height: 26px; }
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+  .panel-head h2 { font-size: 26px; font-weight: 700; margin-top: 2px; }
+  .panel-head p { margin: 4px 0 0; color: var(--muted); }
+  .agent-chip { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 12.5px; font-weight: 600;
+    padding: 6px 12px 6px 6px; border-radius: 999px; background: color-mix(in srgb, var(--c) 12%, #fff); color: var(--ink); }
+  .agent-chip .mini { width: 24px; height: 24px; border-radius: 50%; background: var(--c); display: grid; place-items: center; color: #fff; }
+  .agent-chip .mini svg.i { width: 14px; height: 14px; }
+  .panel-body { padding: 26px 30px 8px; }
+  .panel-body.anim { animation: rise .45s cubic-bezier(.2,.8,.2,1); }
+  .panel-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 30px 26px; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* ================= FORMULARIOS ================= */
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .field { margin-bottom: 20px; }
+  .field > label, .label { display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 8px; }
+  .input {
+    width: 100%; height: 50px; padding: 0 16px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff;
+    font: inherit; color: var(--ink); outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .input:focus { border-color: var(--c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 15%, transparent); }
+  .input::placeholder { color: #A3ACBA; }
+  .invalid .input, .invalid .seg, .invalid .choices { border-color: var(--coral) !important; box-shadow: 0 0 0 4px rgba(244,63,94,.12); border-radius: 14px; }
+  .seg { display: flex; gap: 6px; padding: 5px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; }
+  .seg button { flex: 1; border: 0; background: transparent; padding: 10px 12px; border-radius: 10px; font-weight: 600; color: var(--muted); transition: all .2s; }
+  .seg button.on { background: var(--c); color: #fff; box-shadow: 0 6px 14px -6px var(--c); }
+  .hint { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+
+  /* Desplegable con buscador */
+  .combo { position: relative; }
+  .combo .input { padding-left: 46px; cursor: pointer; }
+  .combo .lead { position: absolute; left: 14px; top: 0; height: 50px; display: flex; align-items: center; color: var(--muted); pointer-events: none; }
+  .combo .chev { position: absolute; right: 14px; top: 15px; color: var(--muted); pointer-events: none; transition: transform .2s; }
+  .combo.open .chev { transform: rotate(180deg); }
+  .menu { position: absolute; z-index: 30; left: 0; right: 0; top: 56px; max-height: 300px; overflow: auto; padding: 6px;
+    background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg); display: none; }
+  .combo.open .menu { display: block; animation: rise .18s ease; }
+  .opt { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; cursor: pointer; }
+  .opt:hover, .opt.hi { background: var(--soft); }
+  .opt .code { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--soft); padding: 2px 8px; border-radius: 6px; }
+  .opt.hi .code, .opt:hover .code { background: #fff; }
+  .opt .eu { font-size: 10.5px; font-weight: 700; color: #1D4ED8; background: #DBEAFE; padding: 1px 6px; border-radius: 5px; }
+  .empty { padding: 14px; color: var(--muted); text-align: center; }
+
+  /* Tarjetas seleccionables (tipo de incidencia) */
+  .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .choice { border: 1.5px solid var(--line); background: #fff; border-radius: 16px; padding: 18px 14px; text-align: left; transition: all .2s; color: var(--ink); }
+  .choice:hover { border-color: color-mix(in srgb, var(--c) 50%, var(--line)); transform: translateY(-2px); }
+  .choice .ci { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--soft); color: var(--muted); margin-bottom: 12px; transition: all .2s; }
+  .choice b { display: block; font-family: Poppins, sans-serif; font-weight: 600; }
+  .choice.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 6%, #fff); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 14%, transparent); }
+  .choice.on .ci { background: var(--c); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1.5px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 16px; font-weight: 500; color: var(--ink); transition: all .2s; }
+  .chip.on { background: var(--c); border-color: var(--c); color: #fff; }
+
+  /* Selector numérico */
+  .stepperNum { display: flex; align-items: center; gap: 14px; }
+  .stepperNum button { width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; font-size: 20px; font-weight: 600; color: var(--ink); }
+  .stepperNum .val { font-family: Poppins, sans-serif; font-size: 28px; font-weight: 700; min-width: 90px; text-align: center; }
+  .stepperNum input[type=range] { flex: 1; accent-color: var(--c); }
+
+  /* ================= BOTONES ================= */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 50px; padding: 0 24px; border-radius: 14px; border: 0;
+    font-weight: 600; transition: transform .15s, box-shadow .2s, opacity .2s; white-space: nowrap; text-decoration: none; }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--c); color: #fff; box-shadow: 0 10px 22px -10px var(--c); }
+  .btn-primary:hover { box-shadow: 0 14px 28px -10px var(--c); transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); padding: 0 14px; }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-soft { background: var(--soft); color: var(--ink); }
+  .btn-soft:hover { background: #ECE7DC; }
+  .btn[disabled] { opacity: .5; pointer-events: none; }
+  .btn-big { height: 58px; font-size: 16.5px; padding: 0 30px; border-radius: 16px; }
+  .spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; animation: rot .8s linear infinite; }
+  @keyframes rot { to { transform: rotate(360deg); } }
+
+  /* ================= BLOQUES DE RESULTADO ================= */
+  .result { margin: 6px 0 22px; border-radius: 16px; border: 1px solid var(--line); background: #FCFBF8; padding: 20px; animation: rise .4s ease; }
+  .result h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+  .stat small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 500; }
+  .stat strong { font-family: Poppins, sans-serif; font-size: 24px; font-weight: 700; }
+  .checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .checks li { display: flex; gap: 12px; align-items: flex-start; }
+  .checks .tick { width: 22px; height: 22px; border-radius: 7px; background: color-mix(in srgb, var(--c) 15%, #fff); color: var(--c); display: grid; place-items: center; flex: none; margin-top: 1px; }
+  .checks .tick svg.i { width: 14px; height: 14px; stroke-width: 3; }
+  .note { display: flex; gap: 10px; font-size: 13px; color: #92400E; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 10px 14px; margin-top: 14px; }
+  .hash { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: var(--navy); color: #fff; margin-top: 14px; flex-wrap: wrap; }
+  .hash code { font-size: 12.5px; word-break: break-all; color: #99F6E4; flex: 1; min-width: 200px; }
+  .link-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
+    background: rgba(255,255,255,.12); color: #fff; text-decoration: none; white-space: nowrap; }
+  .link-pill:hover { background: rgba(255,255,255,.2); }
+  .link-pill svg.i { width: 14px; height: 14px; }
+
+  .offer { position: relative; overflow: hidden; border-radius: 20px; padding: 26px; color: #fff; margin-bottom: 20px;
+    background: radial-gradient(500px 200px at 100% 0%, rgba(255,255,255,.18), transparent 60%), linear-gradient(135deg, #F43F5E, #E11D48 55%, #BE123C); }
+  .offer .lbl { font-size: 13px; font-weight: 600; opacity: .9; text-transform: uppercase; letter-spacing: .06em; }
+  .offer .amount { font-family: Poppins, sans-serif; font-weight: 800; font-size: clamp(36px, 5vw, 48px); line-height: 1.1; margin-top: 6px; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .offer .amount .arrow { opacity: .7; font-size: .6em; }
+  .offer .amount .loc { font-size: .62em; font-weight: 700; background: rgba(255,255,255,.18); padding: 2px 14px; border-radius: 12px; }
+  .offer p { margin: 10px 0 0; opacity: .9; font-size: 14px; }
+  .noadv { border-radius: 16px; padding: 20px; background: #FFF7ED; border: 1px solid #FED7AA; margin-bottom: 20px; }
+  .noadv h3 { color: #9A3412; font-size: 17px; margin-bottom: 6px; display: flex; gap: 10px; align-items: center; }
+  .noadv p { margin: 0; color: #7C2D12; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .badge.yes { background: #DCFCE7; color: #166534; }
+  .badge.no { background: #FFE4E6; color: #9F1239; }
+  .badge.doubtful { background: #FEF3C7; color: #92400E; }
+  .letter { white-space: pre-wrap; font-size: 12.5px; line-height: 1.55; max-height: 230px; overflow: auto; background: #fff; border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px; margin: 0 0 12px; color: #334155; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* Paso 5: monedero y pago */
+  .loader { text-align: center; padding: 30px 10px 34px; }
+  .orb { width: 92px; height: 92px; margin: 0 auto 18px; border-radius: 50%; display: grid; place-items: center; color: #fff; position: relative;
+    background: linear-gradient(135deg, var(--teal), var(--navy)); }
+  .orb::before, .orb::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--teal); opacity: .5; animation: pulse 1.8s ease-out infinite; }
+  .orb::after { animation-delay: .9s; }
+  .orb svg.i { width: 38px; height: 38px; }
+  @keyframes pulse { from { transform: scale(.85); opacity: .7; } to { transform: scale(1.35); opacity: 0; } }
+  .loader h3 { font-size: 20px; }
+  .progress-steps { display: flex; justify-content: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .progress-steps span { font-size: 12.5px; font-weight: 600; padding: 5px 12px; border-radius: 999px; background: var(--soft); color: var(--muted); transition: all .3s; }
+  .progress-steps span.on { background: var(--teal); color: #fff; }
+  .wallet { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: 16px; color: #fff; margin-bottom: 18px;
+    background: radial-gradient(400px 160px at 100% 0%, rgba(20,184,166,.45), transparent 60%), linear-gradient(135deg, var(--navy), var(--navy-2)); }
+  .wallet .wi { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,.12); display: grid; place-items: center; flex: none; }
+  .wallet small { display: block; opacity: .7; font-size: 12px; }
+  .wallet .addr { font-size: 13.5px; word-break: break-all; }
+  .wallet .link-pill { margin-left: auto; }
+  .cession { border: 1.5px dashed color-mix(in srgb, var(--coral) 45%, var(--line)); border-radius: 16px; padding: 20px; background: #FFFBFB; }
+  .cession h3 { font-size: 17px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
+  .cession p { margin: 0 0 14px; color: #334155; }
+  .agree { display: flex; gap: 12px; align-items: center; font-weight: 600; cursor: pointer; user-select: none; }
+  .agree input { width: 20px; height: 20px; accent-color: var(--coral); }
+  .paid { text-align: center; padding: 10px 0 18px; }
+  .check-big { width: 96px; height: 96px; margin: 6px auto 16px; border-radius: 50%; background: var(--green); display: grid; place-items: center; color: #fff;
+    box-shadow: 0 0 0 12px rgba(34,197,94,.14), 0 20px 40px -12px rgba(34,197,94,.6); animation: pop .6s cubic-bezier(.2,1.6,.4,1); }
+  .check-big svg.i { width: 48px; height: 48px; stroke-width: 3; }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+  .paid .k { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+  .paid .big { font-family: Poppins, sans-serif; font-weight: 800; font-size: clamp(30px, 4.6vw, 44px); line-height: 1.15; margin: 4px 0; }
+  .paid .big .to { color: var(--green); }
+  .paid .via { color: var(--muted); }
+  .paid .bal { display: inline-flex; gap: 10px; align-items: center; margin-top: 16px; padding: 10px 18px; border-radius: 999px; background: var(--soft); font-weight: 600; }
+  .paid .bal b { font-family: Poppins, sans-serif; }
+
+  /* ================= PANEL LATERAL ================= */
+  .side { position: sticky; top: 20px; display: grid; gap: 16px; }
+  .agent-card { padding: 20px; display: flex; gap: 14px; align-items: center; position: relative; overflow: hidden; }
+  .agent-card::after { content: ""; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; border-radius: 50%; background: var(--ac); opacity: .08; }
+  .avatar { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; color: #fff; background: var(--ac); flex: none; position: relative; transition: background .4s; }
+  .avatar svg.i { width: 26px; height: 26px; }
+  .avatar .live { position: absolute; right: -3px; bottom: -3px; width: 14px; height: 14px; border-radius: 50%; background: var(--green); border: 3px solid #fff; }
+  .agent-card small { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .agent-card h3 { font-size: 18px; }
+  .agent-card p { margin: 0; color: var(--muted); font-size: 13px; }
+  .agents-row { display: flex; gap: 6px; margin-left: auto; align-self: flex-start; }
+  .agents-row i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+  .agents-row i.on { background: var(--ac); }
+  .side-sec { padding: 18px 18px 14px; }
+  .side-sec h4 { margin: 0 0 12px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .side-sec h4 .count { margin-left: auto; background: var(--soft); color: var(--ink); border-radius: 999px; padding: 1px 9px; font-size: 12px; }
+  .log { max-height: 420px; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; scroll-behavior: smooth; }
+  .msg { display: flex; gap: 10px; animation: rise .3s ease; }
+  .msg .av { width: 28px; height: 28px; border-radius: 9px; background: var(--mc); color: #fff; display: grid; place-items: center; flex: none; }
+  .msg .av svg.i { width: 15px; height: 15px; }
+  .msg .bubble { background: color-mix(in srgb, var(--mc) 8%, #fff); border: 1px solid color-mix(in srgb, var(--mc) 18%, #fff); padding: 9px 12px; border-radius: 4px 14px 14px 14px; font-size: 13.5px; line-height: 1.5; min-width: 0; }
+  .msg .bubble .who { font-size: 11px; font-weight: 700; color: var(--mc); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 2px; filter: brightness(.85); }
+  .msg .bubble ul { margin: 6px 0 0; padding-left: 18px; }
+  .msg .bubble a { color: var(--mc); font-weight: 600; filter: brightness(.8); }
+  .msg.err .bubble { background: #FFF1F2; border-color: #FECDD3; color: #9F1239; font-weight: 600; }
+  .msg.ok .bubble { background: #F0FDF4; border-color: #BBF7D0; }
+  .typing { display: inline-flex; gap: 4px; padding: 4px 0; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--mc); animation: blink 1s infinite; opacity: .3; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 50% { opacity: 1; transform: translateY(-2px); } }
+  .typing-lbl { font-size: 12px; color: var(--muted); margin-left: 6px; }
+  .empty-side { color: #A3ACBA; font-size: 13px; text-align: center; padding: 10px; }
+  .txs { display: grid; gap: 8px; }
+  .tx { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--soft); text-decoration: none; transition: background .2s; animation: rise .3s ease; }
+  .tx:hover { background: #ECE7DC; }
+  .tx .tic { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: #fff; background: var(--tc); flex: none; }
+  .tx .tic svg.i { width: 16px; height: 16px; }
+  .tx b { display: block; font-size: 13px; font-weight: 600; }
+  .tx code { font-size: 11.5px; color: var(--muted); }
+  .tx .ext { margin-left: auto; color: var(--muted); }
+
+  /* ================= PIE Y BARRA DE DEMO ================= */
+  .foot { margin: 28px 0 0; text-align: center; color: var(--muted); font-size: 12.5px; display: flex; gap: 8px; justify-content: center; align-items: center; }
+  .demo { position: fixed; right: 18px; bottom: 18px; z-index: 50; opacity: .82; transition: opacity .2s; display: flex; align-items: center; gap: 4px; padding: 6px;
+    background: rgba(11,31,58,.92); backdrop-filter: blur(10px); border-radius: 999px; box-shadow: var(--shadow-lg); max-width: calc(100vw - 24px); }
+  .demo:hover { opacity: 1; }
+  .demo .tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); padding: 0 10px 0 12px; }
+  .demo button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: rgba(255,255,255,.85); font-size: 13px; font-weight: 500; padding: 9px; border-radius: 999px; white-space: nowrap; }
+  /* Barra discreta: solo iconos; al pasar el ratón se ven los textos */
+  .demo button span { max-width: 0; overflow: hidden; transition: max-width .3s ease; }
+  .demo:hover button span { max-width: 220px; }
+  .demo:hover button { padding: 9px 12px; }
+  .demo button:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .demo button svg.i { width: 15px; height: 15px; }
+  .toast { position: fixed; left: 50%; top: 20px; transform: translate(-50%, -120px); z-index: 60; padding: 12px 20px; border-radius: 14px; color: #fff; font-weight: 600;
+    background: var(--navy); box-shadow: var(--shadow-lg); transition: transform .35s cubic-bezier(.2,.8,.2,1); max-width: calc(100vw - 32px); }
+  .toast.show { transform: translate(-50%, 0); }
+  .toast.err { background: var(--coral); }
+  .warn-bar { background: var(--coral); color: #fff; text-align: center; padding: 10px 16px; font-weight: 600; font-size: 14px; }
+  .confetti { position: fixed; top: -12px; width: 10px; height: 14px; z-index: 70; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+
+  /* ================= MÓVIL ================= */
+  @media (max-width: 1020px) {
+    .grid { grid-template-columns: 1fr; }
+    .side { position: static; }
+  }
+  @media (max-width: 680px) {
+    .wrap { padding: 0 16px; }
+    .hero { padding-bottom: 80px; }
+    .brand { gap: 14px; margin-top: 24px; }
+    .logo { width: 56px; height: 56px; }
+    .tagline { margin-left: 0; }
+    .stepper { padding: 16px 10px; }
+    .step .lbl { display: none; }
+    .step .bub { width: 40px; height: 40px; }
+    .track { top: 18px; }
+    .row, .choices, .stats { grid-template-columns: 1fr; }
+    .choice { display: flex; align-items: center; gap: 14px; padding: 12px 14px; }
+    .choice .ci { margin: 0; }
+    .panel-head { padding: 22px 20px 18px; flex-wrap: wrap; }
+    .agent-chip { margin-left: 0; }
+    .panel-body { padding: 22px 20px 4px; }
+    .panel-foot { padding: 14px 20px 22px; }
+    .demo .tag { display: none; }
+    .badge-net .net-txt { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="warn"></div>
+
+<!-- ================= CABECERA ================= -->
+<header class="hero">
+  <svg class="route" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M-20 260 C 300 40, 800 40, 1220 200" stroke="#fff" stroke-width="2" fill="none" stroke-dasharray="6 10"/>
+    <path d="M-20 300 C 400 120, 700 160, 1220 80" stroke="#14B8A6" stroke-width="2" fill="none" stroke-dasharray="2 12"/>
+    <circle cx="1050" cy="140" r="4" fill="#fff"/><circle cx="160" cy="190" r="4" fill="#fff"/>
+  </svg>
+  <div class="wrap">
+    <div class="topbar">
+      <span class="badge-net"><span class="dot" id="netDot"></span><span class="net-txt">Stellar Testnet · HackMeridian 2026</span></span>
+      <div class="langs" id="langs">
+        <button data-l="es">ES</button><button data-l="pt">PT</button><button data-l="en">EN</button>
+      </div>
+    </div>
+    <div class="brand">
+      <!-- Logo: avión dentro de un escudo -->
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2DD4BF"/><stop offset="1" stop-color="#0D9488"/></linearGradient></defs>
+        <path d="M32 3 7 12.5v17.8C7 45.6 17.6 56.7 32 61c14.4-4.3 25-15.4 25-30.7V12.5z" fill="url(#lg)"/>
+        <path d="M32 7.6 11 15.6v14.7c0 12.9 8.8 22.4 21 26.4 12.2-4 21-13.5 21-26.4V15.6z" fill="#0B1F3A" opacity=".22"/>
+        <g transform="rotate(-35 32 33)"><path d="M47 31.2 37.5 29.6 30 18h-3.6l3.6 11.6-8.2.1-3.3-4.3h-2.6l1.8 7.6-1.8 7.6h2.6l3.3-4.3 8.2.1-3.6 11.6H30l7.5-11.6 9.5-1.6c2.4-.4 2.4-3.6 0-4z" fill="#fff"/></g>
+      </svg>
+      <div>
+        <h1>Disruption Agents</h1>
+        <div class="sub" id="tSub"></div>
+      </div>
+    </div>
+    <p class="tagline" id="tTag"></p>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ================= BARRA DE PROGRESO ================= -->
+  <nav class="stepper card" aria-label="progreso">
+    <div class="steps" id="steps"><div class="track"><div class="fill" id="fill"></div></div></div>
+  </nav>
+
+  <div class="grid">
+    <!-- ================= PASO ACTUAL ================= -->
+    <section class="card panel" id="panel"></section>
+
+    <!-- ================= PANEL LATERAL ================= -->
+    <aside class="side">
+      <div class="card agent-card" id="agentCard"></div>
+      <div class="card side-sec">
+        <h4 id="tLog"></h4>
+        <div class="log" id="log"></div>
+      </div>
+      <div class="card side-sec">
+        <h4><span id="tTxs"></span><span class="count" id="txCount">0</span></h4>
+        <div class="txs" id="txs"></div>
+      </div>
+    </aside>
+  </div>
+
+  <p class="foot" id="disclaimer"></p>
+</main>
+
+<!-- ================= BOTONES DE DEMO ================= -->
+<div class="demo" id="demo"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================================
+   Interfaz de Disruption Agents (JavaScript sencillo, sin frameworks)
+   ============================================================= */
+
+// ---------- Iconos (SVG) ----------
+const ICONS = {
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  bolt: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  wallet: '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>',
+  compass: '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  arrowR: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  arrowL: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  chev: '<path d="m6 9 6 6 6-6"/>',
+  ext: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  x: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+  ban: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+  user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+  land: '<path d="M2 22h20M3.77 10.77 2 9l2-4.5 1.1.55c.55.28.9.84.9 1.45s.35 1.17.9 1.45L8 8.5l3-6 1.05.53a2 2 0 0 1 1.09 1.52l.72 5.4a2 2 0 0 0 1.09 1.52l4.4 2.2c.42.22.78.55 1.01.96l.6 1.03c.49.88-.06 1.98-1.06 2.1l-1.18.15c-.47.06-.95-.02-1.37-.24L4.29 11.15a2 2 0 0 1-.52-.38z"/>',
+  file: '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+  hash: '<path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  swap: '<path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/>',
+  sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/>',
+  redo: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
+  pen: '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+};
+const icon = (n) => `<svg class="i" viewBox="0 0 24 24">${ICONS[n] || ''}</svg>`;
+
+// ---------- Agentes y pasos ----------
+const AGENT = {
+  before: { color: '#14B8A6', icon: 'compass' },
+  during: { color: '#F59E0B', icon: 'bolt' },
+  after: { color: '#F43F5E', icon: 'scale' },
+};
+const STEPS = [
+  { icon: 'globe', color: '#0B1F3A', agent: null },
+  { icon: 'plane', color: '#14B8A6', agent: 'before' },
+  { icon: 'bolt', color: '#F59E0B', agent: 'during' },
+  { icon: 'scale', color: '#F43F5E', agent: 'after' },
+  { icon: 'wallet', color: '#22C55E', agent: 'after' },
+];
+const ASSET_SYMBOL = { EURC: '€', USDC: '$', BRL: 'R$', MXN: '$', COP: '$', ARS: '$', GBP: '£' };
+
+// Casos de ejemplo realistas para el botón "Rellenar con un ejemplo"
+const EXAMPLES = [
+  { country: 'BR', name: 'Ana Souza', origin: 'LIS', dest: 'GRU', flight: 'TP 87', eu: 'yes', type: 'delay', h: 5, cause: 'technical' },
+  { country: 'MX', name: 'Carlos Hernández', origin: 'MAD', dest: 'MEX', flight: 'IB 6401', eu: 'yes', type: 'cancel', d: 3, cause: 'crew' },
+  { country: 'CO', name: 'Valentina Rojas', origin: 'MAD', dest: 'BOG', flight: 'AV 11', eu: 'no', type: 'delay', h: 6, cause: 'technical' },
+  { country: 'AR', name: 'Martín Pereyra', origin: 'BCN', dest: 'EZE', flight: 'LA 8801', eu: 'no', type: 'denied', cause: 'other' },
+  { country: 'GB', name: 'James Walker', origin: 'LIS', dest: 'LHR', flight: 'BA 501', eu: 'no', type: 'delay', h: 3.5, cause: 'crew' },
+  { country: 'US', name: 'Emily Johnson', origin: 'JFK', dest: 'CDG', flight: 'AF 23', eu: 'yes', type: 'delay', h: 7, cause: 'technical' },
+  { country: 'PT', name: 'João Silva', origin: 'OPO', dest: 'FRA', flight: 'LH 1179', eu: 'yes', type: 'cancel', d: 2, cause: 'technical' },
+  { country: 'ES', name: 'Lucía García', origin: 'LIS', dest: 'MAD', flight: 'IB 3101', eu: 'yes', type: 'delay', h: 4, cause: 'weather' },
+  { country: 'IN', name: 'Priya Sharma', origin: 'DEL', dest: 'FRA', flight: 'AI 121', eu: 'unknown', type: 'delay', h: 4, cause: 'technical' },
+];
+
+// ---------- Estado de la app ----------
+let CFG = null;   // datos del servidor (países, aeropuertos, textos)
+let T = null;     // textos en el idioma actual
+let S = null;     // estado del caso actual
+let activeAgent = null;
+let lastExample = -1;
+
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+function newCase(lang) {
+  return {
+    sessionId: uid(), step: 0, maxStep: 0, lang: lang || 'es',
+    country: '', name: '',
+    trip: { origin: '', dest: '', flight: '', date: '', airlineEU: '' },
+    incident: { type: '', delayHours: 4, noticeDays: 3, cause: '' },
+    before: null, during: null, after: null, wallet: null, payment: null,
+    agreed: false, busy: false, invalid: [], autoTried: {},
+  };
+}
+
+// ---------- Utilidades ----------
+const $ = (s) => document.querySelector(s);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+const fold = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const locale = () => ({ es: 'es-ES', pt: 'pt-PT', en: 'en-GB' }[S.lang]);
+const fmt = (n, d = 2) => Number(n).toLocaleString(locale(), { maximumFractionDigits: d });
+const country = () => CFG.countries.find((c) => c.code === S.country);
+const airport = (i) => CFG.airports.find((a) => a.iata === i);
+const shortHash = (h) => `${h.slice(0, 8)}…${h.slice(-6)}`;
+
+function toast(text, err) {
+  const t = $('#toast');
+  t.textContent = text; t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(() => (t.className = 'toast' + (err ? ' err' : '')), 3200);
+}
+
+// Llamada al servidor: el orquestador decide qué agente responde
+async function api(step, extra = {}) {
+  const data = { lang: S.lang, country: S.country, name: S.name, trip: S.trip, incident: S.incident };
+  const res = await fetch(`/api/agent/${step}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId: S.sessionId, data, ...extra }),
+  });
+  const out = await res.json();
+  if (!res.ok) throw new Error(out.error || 'Error');
+  return out;
+}
+
+// ============================================================
+// PANEL LATERAL: agente activo, registro y transacciones
+// ============================================================
+function renderAgentCard() {
+  const a = activeAgent || STEPS[S.step].agent || 'before';
+  const meta = AGENT[a];
+  const info = T.agents[a];
+  const el = $('#agentCard');
+  el.style.setProperty('--ac', meta.color);
+  el.innerHTML = `
+    <div class="avatar">${icon(meta.icon)}<span class="live"></span></div>
+    <div><small>${esc(T.activeAgent)}</small><h3>${esc(info.name)}</h3><p>${esc(info.role)}</p></div>
+    <div class="agents-row">${['before', 'during', 'after'].map((k) => `<i class="${k === a ? 'on' : ''}"></i>`).join('')}</div>`;
+}
+function setActive(agent) { activeAgent = agent; renderAgentCard(); }
+
+function logEmpty() {
+  const log = $('#log');
+  if (!log.children.length) log.innerHTML = `<div class="empty-side">${icon('sparkles')}</div>`;
+}
+function addLog(m) {
+  const log = $('#log');
+  log.querySelector('.empty-side')?.remove();
+  const meta = AGENT[m.agent];
+  const div = document.createElement('div');
+  div.className = 'msg' + (m.error ? ' err' : '') + (m.success ? ' ok' : '');
+  div.style.setProperty('--mc', meta.color);
+  const list = m.list ? `<ul>${m.list.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  const link = m.tx ? ` <a href="${m.tx.link}" target="_blank" rel="noopener">stellar.expert ↗</a>` : '';
+  div.innerHTML = `<div class="av">${icon(meta.icon)}</div><div class="bubble"><span class="who">${esc(T.agents[m.agent].name)}</span>${md(m.text)}${link}${list}</div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+function showTyping(agent) {
+  hideTyping();
+  const meta = AGENT[agent];
+  const div = document.createElement('div');
+  div.className = 'msg'; div.id = 'typing';
+  div.style.setProperty('--mc', meta.color);
+  div.innerHTML = `<div class="av">${icon(meta.icon)}</div><div class="bubble"><span class="typing"><i></i><i></i><i></i></span><span class="typing-lbl">${esc(T.agents[agent].name)} ${esc(T.typing)}</span></div>`;
+  $('#log').querySelector('.empty-side')?.remove();
+  $('#log').appendChild(div);
+  $('#log').scrollTop = $('#log').scrollHeight;
+}
+function hideTyping() { $('#typing')?.remove(); }
+
+// Los agentes "escriben" 1 segundo antes de cada mensaje
+let queue = Promise.resolve();
+function say(messages) {
+  queue = queue.then(async () => {
+    for (const m of messages) {
+      setActive(m.agent);
+      showTyping(m.agent);
+      await sleep(1000);
+      hideTyping();
+      addLog(m);
+      if (m.tx) addTx(m.tx);
+    }
+  });
+  return queue;
+}
+
+const TX_STYLE = { anchor: ['#F59E0B', 'hash'], trust: ['#14B8A6', 'wallet'], pay: ['#22C55E', 'check'], path: ['#22C55E', 'swap'] };
+const txList = [];
+function addTx(tx) { txList.push(tx); renderTxs(); }
+function renderTxs() {
+  $('#txCount').textContent = txList.length;
+  $('#txs').innerHTML = txList.length
+    ? txList.slice().reverse().map((t) => `
+      <a class="tx" href="${t.link}" target="_blank" rel="noopener" style="--tc:${TX_STYLE[t.kind][0]}">
+        <span class="tic">${icon(TX_STYLE[t.kind][1])}</span>
+        <span><b>${esc(T.txKinds[t.kind])}</b><code class="mono">${shortHash(t.hash)}</code></span>
+        <span class="ext">${icon('ext')}</span>
+      </a>`).join('')
+    : `<div class="empty-side">${esc(T.noTx)}</div>`;
+}
+
+// ============================================================
+// DESPLEGABLE CON BUSCADOR (países y aeropuertos)
+// ============================================================
+function combo(mount, { items, value, placeholder, leadIcon, label, search, renderOpt, onPick }) {
+  const box = document.createElement('div');
+  box.className = 'combo';
+  box.innerHTML = `<span class="lead">${leadIcon(value)}</span><input class="input" autocomplete="off" placeholder="${esc(placeholder)}">
+    <span class="chev">${icon('chev')}</span><div class="menu"></div>`;
+  mount.appendChild(box);
+  const input = box.querySelector('input');
+  const menu = box.querySelector('.menu');
+  let hi = 0, shown = [];
+  input.value = value ? label(value) : '';
+
+  function draw(q) {
+    const f = fold(q || '');
+    shown = items.filter((it) => !f || fold(search(it)).includes(f));
+    hi = 0;
+    menu.innerHTML = shown.length
+      ? shown.map((it, i) => `<div class="opt ${i === 0 ? 'hi' : ''}" data-i="${i}">${renderOpt(it)}</div>`).join('')
+      : `<div class="empty">${esc(T.noResults)}</div>`;
+  }
+  function open() { draw(''); box.classList.add('open'); input.select(); }
+  function close() { box.classList.remove('open'); input.value = value ? label(value) : ''; }
+  function pick(it) {
+    value = it; input.value = label(it);
+    box.querySelector('.lead').innerHTML = leadIcon(it);
+    box.classList.remove('open'); onPick(it);
+  }
+  input.addEventListener('focus', open);
+  input.addEventListener('input', () => { draw(input.value); box.classList.add('open'); });
+  input.addEventListener('keydown', (e) => {
+    const opts = menu.querySelectorAll('.opt');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      hi = Math.max(0, Math.min(shown.length - 1, hi + (e.key === 'ArrowDown' ? 1 : -1)));
+      opts.forEach((o, i) => o.classList.toggle('hi', i === hi));
+      opts[hi]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') { e.preventDefault(); if (shown[hi]) pick(shown[hi]); }
+    else if (e.key === 'Escape') { close(); input.blur(); }
+  });
+  menu.addEventListener('mousedown', (e) => {
+    const o = e.target.closest('.opt'); if (!o) return;
+    e.preventDefault(); pick(shown[Number(o.dataset.i)]); input.blur();
+  });
+  input.addEventListener('blur', () => setTimeout(close, 120));
+}
+
+// ============================================================
+// PASOS DEL ASISTENTE
+// ============================================================
+const field = (key, labelText, inner, hint = '') =>
+  `<div class="field ${S.invalid.includes(key) ? 'invalid' : ''}" data-key="${key}"><label>${esc(labelText)}</label>${inner}${hint ? `<div class="hint">${hint}</div>` : ''}</div>`;
+const seg = (name, opts, cur) =>
+  `<div class="seg" data-seg="${name}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>`;
+
+// Al cambiar datos de un paso, se borran los resultados de los pasos siguientes
+function invalidateFrom(step) {
+  if (step <= 1) S.before = null;
+  if (step <= 2) S.during = null;
+  if (step <= 3) { S.after = null; S.payment = null; S.agreed = false; }
+  if (step <= 0) S.wallet = null;
+  S.maxStep = Math.min(S.maxStep, step);
+  S.invalid = [];
+}
+
+// ---------- Paso 1: país ----------
+function stepCountry() {
+  const c = country();
+  const sym = c ? ASSET_SYMBOL[c.asset] : '';
+  return {
+    body: `
+      ${field('country', T.country, '<div id="mCountry"></div>')}
+      ${field('name', T.name, `<input class="input" id="iName" placeholder="${esc(T.namePh)}" value="${esc(S.name)}" maxlength="80">`)}
+      <div class="row">
+        ${field('lang', T.language, seg('lang', [['es', 'Español'], ['pt', 'Português'], ['en', 'English']], S.lang))}
+        <div class="field"><label>${esc(T.payoutIn)}</label>
+          <div class="input" style="display:flex;align-items:center;gap:10px;background:var(--soft);border-color:transparent;padding-left:16px">
+            ${c ? `<span class="flag">${c.flag}</span><b>${c.asset}</b><span style="color:var(--muted)">${sym} · Stellar</span>` : '<span style="color:#A3ACBA">—</span>'}
+          </div>
+        </div>
+      </div>`,
+    mount() {
+      combo($('#mCountry'), {
+        items: CFG.countries, value: c, placeholder: T.countrySearch,
+        leadIcon: (it) => (it ? `<span class="flag">${it.flag}</span>` : icon('globe')),
+        label: (it) => it.names[S.lang],
+        search: (it) => `${it.names.es} ${it.names.pt} ${it.names.en} ${it.code} ${it.currency}`,
+        renderOpt: (it) => `<span class="flag">${it.flag}</span><span>${esc(it.names[S.lang])}</span><span class="code">${it.asset}</span>`,
+        onPick: (it) => { S.country = it.code; invalidateFrom(0); setLang(it.lang); },
+      });
+      $('#iName').addEventListener('input', (e) => { S.name = e.target.value; invalidateFrom(1); });
+    },
+    onSeg(name, v) { if (name === 'lang') setLang(v); },
+    primary: { label: T.next, icon: 'arrowR' },
+    async action() {
+      const bad = [];
+      if (!S.country) bad.push('country');
+      if (S.name.trim().length < 2) bad.push('name');
+      if (bad.length) return fail(bad);
+      go(1);
+    },
+  };
+}
+
+// ---------- Paso 2: viaje (Agente ANTES) ----------
+function stepTrip() {
+  const b = S.before;
+  const airportCombo = (id, key, ph) => combo($(id), {
+    items: CFG.airports, value: airport(S.trip[key]), placeholder: ph,
+    leadIcon: () => icon(key === 'origin' ? 'plane' : 'land'),
+    label: (a) => `${a.city} (${a.iata})`,
+    search: (a) => `${a.city} ${a.iata} ${a.country}`,
+    renderOpt: (a) => `<span class="flag">${flagOf(a.country)}</span><span>${esc(a.city)}</span>${a.eu ? '<span class="eu">EU</span>' : ''}<span class="code">${a.iata}</span>`,
+    onPick: (a) => { S.trip[key] = a.iata; invalidateFrom(1); render(); },
+  });
+  return {
+    body: `
+      <div class="row">
+        ${field('origin', T.origin, '<div id="mOrigin"></div>')}
+        ${field('dest', T.dest, '<div id="mDest"></div>')}
+      </div>
+      <div class="row">
+        ${field('flight', T.flight, `<input class="input mono" id="iFlight" placeholder="${esc(T.flightPh)}" value="${esc(S.trip.flight)}" maxlength="9" style="text-transform:uppercase">`)}
+        ${field('date', T.date, `<input class="input" type="date" id="iDate" value="${esc(S.trip.date)}" max="${new Date().toISOString().slice(0, 10)}">`)}
+      </div>
+      ${field('airlineEU', T.airlineEU, seg('airlineEU', [['yes', T.yes], ['no', T.no], ['unknown', T.unknown]], S.trip.airlineEU))}
+      ${b ? `
+        <div class="result">
+          <div class="stats" style="grid-template-columns:1fr 1fr">
+            <div class="stat"><small>${esc(T.distance)}</small><strong>${fmt(b.km, 0)} km</strong></div>
+            <div class="stat"><small>${esc(T.flight)}</small><strong class="mono" style="font-size:20px">${esc(S.trip.flight.toUpperCase())}</strong></div>
+          </div>
+          <h3>${icon('file')} ${esc(T.checklist)}</h3>
+          <ul class="checks">${b.checklist.items.map((x) => `<li><span class="tick">${icon('check')}</span>${esc(x)}</li>`).join('')}</ul>
+          <div class="note">${icon('info')}<span>${esc(b.checklist.warning)}</span></div>
+        </div>` : ''}`,
+    mount() {
+      airportCombo('#mOrigin', 'origin', T.airportSearch);
+      airportCombo('#mDest', 'dest', T.airportSearch);
+      $('#iFlight').addEventListener('input', (e) => { S.trip.flight = e.target.value; if (S.before) { invalidateFrom(1); render(); $('#iFlight').focus(); } });
+      $('#iDate').addEventListener('change', (e) => { S.trip.date = e.target.value; invalidateFrom(1); render(); });
+    },
+    onSeg(name, v) { S.trip.airlineEU = v; invalidateFrom(1); render(); },
+    primary: b ? { label: T.next, icon: 'arrowR' } : { label: T.next, icon: 'compass' },
+    async action() {
+      if (S.before) return go(2);
+      const bad = [];
+      if (!S.trip.origin) bad.push('origin');
+      if (!S.trip.dest || S.trip.dest === S.trip.origin) bad.push('dest');
+      if (!/^[A-Z0-9]{2}\s?\d{1,4}[A-Z]?$/i.test(S.trip.flight.trim())) bad.push('flight');
+      if (!S.trip.date) bad.push('date');
+      if (!S.trip.airlineEU) bad.push('airlineEU');
+      if (bad.length) return fail(bad);
+      await busy(async () => {
+        showTyping('before'); setActive('before');
+        const out = await api('trip');
+        hideTyping();
+        await say(out.messages);
+        if (!out.ok) return fail(out.errors);
+        S.before = out; render();
+      });
+    },
+  };
+}
+
+// ---------- Paso 3: incidencia (Agente DURANTE) ----------
+function stepIncident() {
+  const inc = S.incident;
+  const d = S.during;
+  const numPicker = (key, val, min, max, stepv, unit) => `
+    <div class="stepperNum" data-num="${key}">
+      <button type="button" data-d="-${stepv}">−</button>
+      <span class="val">${fmt(val, 1)}<small style="font-size:15px;color:var(--muted)"> ${esc(unit)}</small></span>
+      <button type="button" data-d="${stepv}">+</button>
+      <input type="range" min="${min}" max="${max}" step="${stepv}" value="${val}">
+    </div>`;
+  const types = [['delay', 'clock'], ['cancel', 'x'], ['denied', 'ban']];
+  return {
+    body: `
+      ${field('type', T.incident, `<div class="choices">${types.map(([k, ic]) => `
+        <button type="button" class="choice ${inc.type === k ? 'on' : ''}" data-type="${k}"><span class="ci">${icon(ic)}</span><b>${esc(T[k])}</b></button>`).join('')}</div>`)}
+      ${inc.type === 'delay' ? field('delayHours', T.delayHours, numPicker('delayHours', inc.delayHours, 0, 24, 0.5, T.hours)) : ''}
+      ${inc.type === 'cancel' ? field('noticeDays', T.noticeDays, numPicker('noticeDays', inc.noticeDays, 0, 30, 1, T.days)) : ''}
+      ${field('cause', T.cause, `<div class="chips">${Object.entries(T.causes).map(([k, l]) => `<button type="button" class="chip ${inc.cause === k ? 'on' : ''}" data-cause="${k}">${esc(l)}</button>`).join('')}</div>`)}
+      ${d ? `
+        <div class="result">
+          <h3>${icon('shield')} ${esc(T.agents.during.name)}</h3>
+          <ul class="checks">${d.rights.map((x) => `<li><span class="tick">${icon('check')}</span>${esc(x)}</li>`).join('')}</ul>
+          <div class="hash">${icon('hash')}<code class="mono">SHA-256 ${d.evidence.hash}</code>
+            ${d.evidence.tx ? `<a class="link-pill" href="${d.evidence.tx.link}" target="_blank" rel="noopener">${icon('ext')} Stellar memo hash</a>` : ''}</div>
+        </div>` : ''}`,
+    mount() {
+      document.querySelectorAll('[data-type]').forEach((b) => b.addEventListener('click', () => { inc.type = b.dataset.type; invalidateFrom(2); render(); }));
+      document.querySelectorAll('[data-cause]').forEach((b) => b.addEventListener('click', () => { inc.cause = b.dataset.cause; invalidateFrom(2); render(); }));
+      document.querySelectorAll('[data-num]').forEach((box) => {
+        const key = box.dataset.num;
+        const range = box.querySelector('input');
+        const set = (v) => { inc[key] = Math.max(Number(range.min), Math.min(Number(range.max), v)); invalidateFrom(2); render(); };
+        box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => set(Number(inc[key]) + Number(b.dataset.d))));
+        range.addEventListener('change', () => set(Number(range.value)));
+        range.addEventListener('input', () => { box.querySelector('.val').firstChild.textContent = fmt(range.value, 1); });
+      });
+    },
+    primary: d ? { label: T.next, icon: 'arrowR' } : { label: T.confirmIncident, icon: 'shield' },
+    async action() {
+      if (S.during) return go(3);
+      const bad = [];
+      if (!inc.type) bad.push('type');
+      if (!inc.cause) bad.push('cause');
+      if (bad.length) return fail(bad);
+      await busy(async () => {
+        setActive('during'); showTyping('during');
+        const out = await api('incident');
+        hideTyping();
+        await say(out.messages);
+        S.during = out; render();
+      });
+    },
+  };
+}
+
+// ---------- Paso 4: derechos (Agente DESPUÉS) ----------
+function stepRights() {
+  const a = S.after;
+  if (!a) {
+    return {
+      body: `<div class="loader"><div class="orb" style="background:linear-gradient(135deg,var(--coral),var(--navy))">${icon('scale')}</div><h3>${esc(T.agents.after.name)}</h3><p style="color:var(--muted)">${esc(T.agents.after.role)}…</p></div>`,
+      primary: null,
+      async auto() {
+        await busy(async () => {
+          setActive('after'); showTyping('after');
+          const out = await api('rights');
+          hideTyping();
+          await say(out.messages);
+          S.after = out; render();
+        });
+      },
+    };
+  }
+  const ev = a.evaluation;
+  const coveredLabel = { yes: T.yesCovered, no: T.noCovered, doubtful: T.doubtful }[ev.covered];
+  const shownComp = ev.status === 'no_right' ? 0 : ev.compensationEUR;
+  return {
+    body: `
+      <div class="stats">
+        <div class="stat"><small>${esc(T.covered)}</small><strong><span class="badge ${ev.covered}" style="font-size:15px;margin-top:6px">${esc(coveredLabel)}</span></strong></div>
+        <div class="stat"><small>${esc(T.distance)}</small><strong>${fmt(ev.distanceKm, 0)} km</strong></div>
+        <div class="stat"><small>${esc(T.compensation)}</small><strong>${fmt(shownComp)} €</strong></div>
+      </div>
+      ${a.offer ? `
+        <div class="offer">
+          <div class="lbl">${esc(T.advance)}</div>
+          <div class="amount">${fmt(a.offer.advanceEUR)} €<span class="arrow">→</span><span class="loc">${fmt(a.offer.local)} ${a.offer.asset}</span></div>
+          <p>${esc(T.compensation)}: <b>${fmt(ev.compensationEUR)} €</b> · 80 % · 1 EURC = ${fmt(a.offer.rate)} ${a.offer.asset} (demo)</p>
+        </div>` : `
+        <div class="noadv"><h3>${icon('info')} ${esc(T.noAdvanceTitle)}</h3><p>${esc((ev.why || '').charAt(0).toUpperCase() + (ev.why || '').slice(1))}</p></div>`}
+      <div class="result" style="margin-top:0">
+        <h3>${icon('file')} ${esc(T.claimTitle)}</h3>
+        <pre class="letter mono" id="letter">${esc(a.claimLetter)}</pre>
+        <div class="actions">
+          <button class="btn btn-soft" id="bDownload">${icon('download')} ${esc(T.download)}</button>
+          <button class="btn btn-soft" id="bCopy">${icon('copy')} ${esc(T.copy)}</button>
+        </div>
+      </div>`,
+    mount() {
+      $('#bDownload').addEventListener('click', () => {
+        const blob = new Blob([a.claimLetter], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `claim-${S.trip.flight.replace(/\s+/g, '').toUpperCase()}-${S.trip.date}.txt`;
+        link.click();
+      });
+      $('#bCopy').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(a.claimLetter); } catch { /* sin permiso de portapapeles */ }
+        toast(T.copied);
+      });
+    },
+    primary: a.offer ? { label: T.goPayout, icon: 'wallet' } : { label: T.restartCase, icon: 'redo' },
+    async action() { if (a.offer) go(4); else restart(); },
+  };
+}
+
+// ---------- Paso 5: cobrar ----------
+function stepPayout() {
+  const p = S.payment;
+  const w = S.wallet;
+  const offer = S.after?.offer;
+  if (p) {
+    const isPath = p.assetCode !== 'EURC';
+    return {
+      body: `
+        <div class="paid">
+          <div class="check-big">${icon('check')}</div>
+          <div class="k">${esc(T.paid)}</div>
+          <div class="big">${fmt(p.sentEUR)} EURC${isPath ? ` <span style="color:var(--muted);font-weight:500">→</span> <span class="to">${fmt(p.received)} ${p.assetCode}</span>` : ''}</div>
+          <div class="via">${isPath ? 'Path payment · Stellar DEX' : 'Stellar payment'}</div>
+          <div class="bal">${icon('wallet')} ${esc(T.balance)}: <b>${p.balances.map((b) => `${fmt(b.amount)} ${b.code}`).join(' · ')}</b></div>
+          <div style="margin-top:18px"><a class="btn btn-soft" href="${p.tx.link}" target="_blank" rel="noopener">${icon('ext')} ${esc(T.viewTx)}</a></div>
+        </div>`,
+      primary: { label: T.restartCase, icon: 'redo' },
+      action: restart,
+    };
+  }
+  if (!w) {
+    return {
+      body: `
+        <div class="loader">
+          <div class="orb">${icon('wallet')}</div>
+          <h3>${esc(T.creatingWallet)}</h3>
+          <div class="progress-steps"><span class="on" id="ps1">Friendbot</span><span id="ps2">Trustline ${offer ? offer.asset : ''}</span><span id="ps3">OK</span></div>
+        </div>`,
+      primary: null,
+      async auto() {
+        await busy(async () => {
+          setActive('after');
+          say([{ agent: 'after', text: T.creatingWallet }]);
+          setTimeout(() => $('#ps2')?.classList.add('on'), 2200);
+          const out = await api('wallet');
+          $('#ps3')?.classList.add('on');
+          await sleep(400);
+          S.wallet = out.wallet; render();
+          say(out.messages);
+        });
+      },
+    };
+  }
+  return {
+    body: `
+      <div class="wallet">
+        <div class="wi">${icon('wallet')}</div>
+        <div style="min-width:0"><small>${esc(T.walletReady)} · ${w.asset}</small><div class="addr mono">${shortHash(w.public)}</div></div>
+        <a class="link-pill" href="${w.link}" target="_blank" rel="noopener">${icon('ext')} stellar.expert</a>
+      </div>
+      <div class="offer" style="padding:20px 24px">
+        <div class="lbl">${esc(T.youReceive)}</div>
+        <div class="amount" style="font-size:36px">${fmt(offer.advanceEUR)} €<span class="arrow">→</span><span class="loc">${fmt(offer.local)} ${offer.asset}</span></div>
+      </div>
+      <div class="cession">
+        <h3>${icon('pen')} ${esc(T.cessionTitle)}</h3>
+        <p>${esc(S.after.cessionText[S.lang])}</p>
+        <label class="agree"><input type="checkbox" id="cAgree" ${S.agreed ? 'checked' : ''}> ${esc(T.cessionCheck)}</label>
+      </div>`,
+    mount() {
+      $('#cAgree').addEventListener('change', (e) => { S.agreed = e.target.checked; render(); });
+    },
+    primary: { label: T.sign, icon: 'pen', disabled: !S.agreed, big: true },
+    async action() {
+      await busy(async () => {
+        setActive('after'); showTyping('after');
+        const out = await api('pay', { signed: true });
+        hideTyping();
+        if (out.ok) { S.payment = out.payment; render(); confetti(); }
+        await say(out.messages);
+        if (!out.ok) toast(out.messages[0].text, true);
+      }, T.paying);
+    },
+  };
+}
+
+const STEP_FN = [stepCountry, stepTrip, stepIncident, stepRights, stepPayout];
+let current = null;
+let lastStep = -1; // para animar solo al cambiar de paso
+
+// ============================================================
+// DIBUJAR LA PÁGINA
+// ============================================================
+function render() {
+  document.documentElement.lang = S.lang;
+  $('#tSub').textContent = T.subtitle;
+  $('#tTag').textContent = T.tagline;
+  $('#tLog').textContent = T.log;
+  $('#tTxs').textContent = T.txs;
+  $('#disclaimer').innerHTML = `${icon('info')} ${esc(T.disclaimer)}`;
+  document.querySelectorAll('#langs button').forEach((b) => b.classList.toggle('on', b.dataset.l === S.lang));
+
+  // Barra de progreso
+  const steps = $('#steps');
+  steps.querySelectorAll('.step').forEach((s) => s.remove());
+  STEPS.forEach((st, i) => {
+    const b = document.createElement('button');
+    const done = i < S.step || (i <= S.maxStep && i !== S.step);
+    b.className = 'step' + (i === S.step ? ' on' : '') + (done ? ' done' : '');
+    b.style.setProperty('--sc', st.color);
+    b.innerHTML = `<span class="bub">${done ? icon('check') : icon(st.icon)}</span><span class="lbl">${esc(T.steps[i])}</span>`;
+    if (done && !S.busy) b.addEventListener('click', () => go(i));
+    steps.appendChild(b);
+  });
+  $('#fill').style.width = `${(S.step / (STEPS.length - 1)) * 100}%`;
+
+  // Tarjeta del paso actual
+  const meta = STEPS[S.step];
+  current = STEP_FN[S.step]();
+  // Si un paso automático ya se intentó y falló, mostramos un botón para reintentar
+  if (current.auto && S.autoTried[S.step] && !S.busy) current.primary = { label: T.next, icon: 'redo' };
+  const panel = $('#panel');
+  panel.style.setProperty('--c', meta.color);
+  const agentChip = meta.agent ? `<span class="agent-chip"><span class="mini">${icon(AGENT[meta.agent].icon)}</span>${esc(T.agents[meta.agent].name)}</span>` : '';
+  const p = current.primary;
+  panel.innerHTML = `
+    <div class="panel-head">
+      <div class="ico">${icon(meta.icon)}</div>
+      <div><div class="kicker">${S.step + 1} / 5</div><h2>${esc(T.steps[S.step])}</h2><p>${esc(T.stepHints[S.step])}</p></div>
+      ${agentChip}
+    </div>
+    <div class="panel-body ${S.step !== lastStep ? 'anim' : ''}">${current.body}</div>
+    <div class="panel-foot">
+      ${S.step > 0 && !S.payment ? `<button class="btn btn-ghost" id="bBack">${icon('arrowL')} ${esc(T.back)}</button>` : '<span></span>'}
+      ${p ? `<button class="btn btn-primary ${p.big ? 'btn-big' : ''}" id="bNext" ${p.disabled || S.busy ? 'disabled' : ''}>
+        ${S.busy ? `<span class="spin"></span> ${esc(S.busyText || '')}` : `${esc(p.label)} ${icon(p.icon)}`}</button>` : ''}
+    </div>`;
+  lastStep = S.step;
+  current.mount?.();
+  panel.querySelectorAll('[data-seg]').forEach((g) => g.querySelectorAll('button').forEach((b) =>
+    b.addEventListener('click', () => current.onSeg?.(g.dataset.seg, b.dataset.v))));
+  $('#bBack')?.addEventListener('click', () => go(S.step - 1));
+  $('#bNext')?.addEventListener('click', () => (current.action ? current.action() : current.auto()));
+
+  if (!S.busy) renderAgentCard();
+  renderTxs();
+  renderDemo();
+  if (current.auto && !S.busy && !S.autoTried[S.step]) { S.autoTried[S.step] = true; current.auto(); }
+}
+
+function go(step) {
+  S.step = step;
+  S.autoTried = {};
+  S.maxStep = Math.max(S.maxStep, step);
+  S.invalid = [];
+  activeAgent = STEPS[step].agent;
+  render();
+  if (window.innerWidth < 1020) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function fail(keys) { S.invalid = keys; render(); toast(T.required, true); }
+async function busy(fn, text = '') {
+  S.busy = true; S.busyText = text; render();
+  try { await fn(); } catch (e) { hideTyping(); toast(e.message, true); }
+  S.busy = false; render();
+}
+function setLang(l) { S.lang = l; T = CFG.ui[l]; render(); }
+
+function restart() {
+  S = newCase(S.lang);
+  txList.length = 0;
+  $('#log').innerHTML = '';
+  logEmpty();
+  activeAgent = null;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Bandera de un país (para los aeropuertos)
+function flagOf(code) {
+  const c = CFG.countries.find((x) => x.code === code);
+  if (c) return c.flag;
+  return code.replace(/./g, (ch) => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+}
+
+// ============================================================
+// BOTONES DE DEMO
+// ============================================================
+function renderDemo() {
+  $('#demo').innerHTML = `
+    <span class="tag">${esc(T.demoBar)}</span>
+    <button id="dFill" title="${esc(T.fill)}">${icon('sparkles')}<span>${esc(T.fill)}</span></button>
+    <button id="dRetry" title="${esc(T.retry)}">${icon('redo')}<span>${esc(T.retry)}</span></button>
+    <button id="dRestart" title="${esc(T.restart)}">${icon('arrowL')}<span>${esc(T.restart)}</span></button>`;
+  $('#dFill').onclick = fillExample;
+  $('#dRetry').onclick = retryPay;
+  $('#dRestart').onclick = restart;
+}
+
+function fillExample() {
+  if (S.busy) return;
+  let i;
+  do { i = Math.floor(Math.random() * EXAMPLES.length); } while (i === lastExample);
+  lastExample = i;
+  const e = EXAMPLES[i];
+  const c = CFG.countries.find((x) => x.code === e.country);
+  // Fecha aleatoria de los últimos 30 días y número de vuelo con sufijo aleatorio (para que cada demo sea un caso nuevo)
+  const d = new Date(Date.now() - (2 + Math.floor(Math.random() * 28)) * 86400000).toISOString().slice(0, 10);
+  restart();
+  Object.assign(S, { lang: c.lang, country: e.country, name: e.name });
+  S.trip = { origin: e.origin, dest: e.dest, flight: e.flight, date: d, airlineEU: e.eu };
+  S.incident = { type: e.type, delayHours: e.h || 4, noticeDays: e.d ?? 3, cause: e.cause };
+  T = CFG.ui[S.lang];
+  render();
+  toast(`${c.flag}  ${e.name} · ${e.origin} → ${e.dest}`);
+}
+
+async function retryPay() {
+  if (S.busy) return;
+  if (!S.payment) { toast(T.retry + ' → ' + T.steps[4], true); return; }
+  setActive('after'); showTyping('after');
+  try {
+    const out = await api('pay', { signed: true });
+    hideTyping();
+    await say(out.messages);
+    if (!out.ok) toast(out.messages[0].text, true);
+  } catch (e) { hideTyping(); toast(e.message, true); }
+}
+
+// Confeti al cobrar
+function confetti() {
+  const colors = ['#14B8A6', '#F59E0B', '#F43F5E', '#22C55E', '#0B1F3A'];
+  for (let i = 0; i < 90; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDuration = 1.8 + Math.random() * 1.8 + 's';
+    c.style.animationDelay = Math.random() * 0.4 + 's';
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4200);
+  }
+}
+
+// ============================================================
+// ARRANQUE
+// ============================================================
+(async function init() {
+  CFG = await (await fetch('/api/config')).json();
+  const browser = (navigator.language || 'es').slice(0, 2);
+  S = newCase(['es', 'pt', 'en'].includes(browser) ? browser : 'es');
+  T = CFG.ui[S.lang];
+  document.querySelectorAll('#langs button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.l)));
+  if (!CFG.stellarReady) {
+    $('#warn').innerHTML = `<div class="warn-bar">⚠ ${esc(T.stellarNotReady)}</div>`;
+    $('#netDot').classList.add('off');
+  }
+  logEmpty();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+==========================================================
+   DISRUPTION AGENTS - Como abrir la app (Windows)
+==========================================================
+
+PASO 1 - Instalar Node.js (solo la primera vez)
+   1. Entra en https://nodejs.org
+   2. Pulsa el boton verde que pone "LTS" y descargalo.
+   3. Abre el archivo descargado y dale a "Siguiente" en todo
+      hasta que termine. No hace falta cambiar nada.
+
+PASO 2 - Descomprimir la carpeta
+   1. Clic derecho sobre "disruption-agents.zip"
+      -> "Extraer todo..." -> "Extraer".
+   2. Entra en la carpeta que aparece (se llama "Shaila").
+
+PASO 3 - Arrancar la app
+   1. Haz doble clic en el archivo  ARRANCAR  (o ARRANCAR.bat).
+   2. Se abre una ventana negra con texto: es normal.
+      La primera vez tarda 1-2 minutos.
+   3. Se abrira sola la app en el navegador.
+      Si no se abre, escribe esto en el navegador:
+         http://localhost:3000
+
+   >> NO cierres la ventana negra mientras uses la app.
+   >> Para apagar la app: cierra la ventana negra.
+   >> Para volver a usarla otro dia: doble clic en ARRANCAR otra vez.
+
+----------------------------------------------------------
+SI ALGO FALLA
+----------------------------------------------------------
+* Windows dice "Windows protegio su PC":
+     pulsa "Mas informacion" -> "Ejecutar de todas formas".
+
+* La ventana negra dice que falta Node.js:
+     haz el PASO 1 y vuelve a hacer doble clic en ARRANCAR.
+
+* Sale una franja roja arriba en la app ("Stellar no esta configurado"):
+     cierra la ventana negra y haz doble clic en ARRANCAR otra vez.
+
+* La pagina no carga:
+     comprueba que tienes internet y que la ventana negra sigue abierta.
+
+----------------------------------------------------------
+TRUCOS PARA LA DEMO
+----------------------------------------------------------
+Abajo a la derecha hay una barrita oscura con 3 iconos
+(pasa el raton por encima para ver los nombres):
+   * Rellenar con un ejemplo   -> rellena un caso real al azar
+   * Intentar cobrar otra vez  -> ensena que no se paga dos veces
+   * Empezar de nuevo          -> vuelve al principio

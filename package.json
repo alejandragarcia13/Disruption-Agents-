@@ -1,0 +1,20 @@
+{
+  "name": "disruption-agents",
+  "version": "1.0.0",
+  "description": "Disruption Agents — tu vuelo falló, tu dinero no. Indemnizaciones EU261 pagadas al instante por Stellar.",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "setup": "node setup-stellar.js",
+    "start": "node server.js",
+    "test-demo": "node test-demo.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@stellar/stellar-sdk": "^17.4.0",
+    "express": "^5.3.0"
+  }
+}
